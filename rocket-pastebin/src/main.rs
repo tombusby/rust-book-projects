@@ -2,6 +2,7 @@
 extern crate rocket;
 
 use rocket::data::{Data, ToByteUnit};
+use rocket::tokio::fs::File;
 
 mod paste_id;
 use paste_id::PasteId;
@@ -32,7 +33,13 @@ async fn upload(paste: Data<'_>) -> std::io::Result<String> {
     Ok(format!("{url}", url = url))
 }
 
+#[get("/<id>")]
+async fn retrieve(id: &str) -> Option<File> {
+    let filename = format!("upload/{id}", id = id);
+    File::open(&filename).await.ok()
+}
+
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, upload])
+    rocket::build().mount("/", routes![index, upload, retrieve])
 }
